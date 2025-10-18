@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>泡泡堂精炼模拟器</title>
+    <style>
+        :root {
+            --primary-color: #4a6fa5;
+            --secondary-color: #6b8cbc;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --light-bg: #f8f9fa;
+            --dark-text: #343a40;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: var(--dark-text);
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--primary-color);
+        }
+        
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #f1f1f1;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+        }
+        
+        .tab.active {
+            background-color: white;
+            border-bottom: 1px solid white;
+            margin-bottom: -1px;
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 20px;
+            background-color: white;
+            border-radius: 0 5px 5px 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            padding: 10px 15px;
+            margin-bottom: 20px;
+            color: #856404;
+        }
+        
+        .button-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            gap: 15px;
+        }
+        
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        button:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .clear-btn {
+            background-color: #6c757d;
+        }
+        
+        .clear-btn:hover {
+            background-color: #5a6268;
+        }
+        
+        .simulate-btn {
+            background-color: var(--success-color);
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 25px;
+        }
+        
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .result-area, .selection-area {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .result-area {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .result-display {
+            text-align: center;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: var(--light-bg);
+            margin-bottom: 25px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .total-score {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin: 15px 0;
+        }
+        
+        .success-rate {
+            font-size: 1.8rem;
+            margin: 15px 0;
+            padding: 12px;
+            border-radius: 5px;
+        }
+        
+        .rate-100 { background-color: #d4edda; color: #155724; }
+        .rate-75 { background-color: #fff3cd; color: #856404; }
+        .rate-50 { background-color: #ffeaa7; color: #856404; }
+        .rate-25 { background-color: #f8d7da; color: #721c24; }
+        
+        .result-note {
+            margin-top: 15px;
+            font-style: italic;
+            color: #666;
+            font-size: 1.1rem;
+        }
+        
+        .slot-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .slot {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 15px;
+            min-height: 150px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s;
+        }
+        
+        .slot.active {
+            border-color: var(--primary-color);
+            background-color: rgba(74, 111, 165, 0.05);
+        }
+        
+        .slot-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+        }
+        
+        .selected-item {
+            background-color: var(--light-bg);
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .remove-btn {
+            background: none;
+            border: none;
+            color: var(--danger-color);
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        
+        .selection-area h2 {
+            margin-bottom: 15px;
+        }
+        
+        .items-container {
+            height: 500px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+        }
+        
+        .item-category {
+            margin-bottom: 15px;
+        }
+        
+        .category-title {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 5px;
+            margin-bottom: 8px;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+        
+        .item {
+            padding: 10px 12px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .item:hover {
+            background-color: var(--light-bg);
+        }
+        
+        .item-score {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .simulation-result {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: var(--light-bg);
+            text-align: center;
+        }
+        
+        .simulation-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+        
+        .simulation-item {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--success-color);
+            margin: 10px 0;
+        }
+        
+        .simulation-fail {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--danger-color);
+            margin: 10px 0;
+        }
+        
+        .simulation-bubble {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #6f42c1;
+            margin: 10px 0;
+        }
+        
+        .pool-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        .pool-table th, .pool-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        .pool-table th {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .pool-table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        
+        .formula {
+            background-color: var(--light-bg);
+            border-left: 4px solid var(--primary-color);
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 0 5px 5px 0;
+        }
+        
+        .formula.recommended {
+            border-left-color: var(--success-color);
+            background-color: #e8f5e8;
+        }
+        
+        .formula-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .formula-content {
+            color: #555;
+        }
+        
+        .bubbles-section {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>泡泡堂精炼模拟器</h1>
+            <p>选择物品计算精炼分数，模拟精炼结果，查看精炼池子</p>
+        </header>
+        
+        <div class="tabs">
+            <div class="tab active" data-tab="calculator">精炼计算器</div>
+            <div class="tab" data-tab="pool">精炼池子</div>
+            <div class="tab" data-tab="formulas">实验配方</div>
+        </div>
+        
+        <div class="tab-content active" id="calculator">
+            <div class="warning">
+                <strong>注意：</strong> 只有特定分数(20,24,40,52,58,59,60,65,80)才能精炼出武器和属性泡泡，其他分数只能产出杂物类物品
+            </div>
+            
+            <div class="button-container">
+                <button id="calculate-btn">计算分数和成功率</button>
+                <button id="simulate-btn" class="simulate-btn">模拟精炼</button>
+                <button id="clear-btn" class="clear-btn">清空所有槽位</button>
+            </div>
+            
+            <div class="main-content">
+                <div class="result-area">
+                    <h2>精炼结果</h2>
+                    
+                    <div class="result-display">
+                        <div style="font-size: 1.2rem;">总分</div>
+                        <div class="total-score" id="total-score">0</div>
+                        <div class="success-rate" id="success-rate">请选择物品并计算</div>
+                        <div class="result-note" id="result-note"></div>
+                    </div>
+                    
+                    <div class="simulation-result" id="simulation-result" style="display: none;">
+                        <div class="simulation-title">模拟精炼结果</div>
+                        <div class="simulation-item" id="simulation-item">未知</div>
+                        <div id="simulation-note"></div>
+                    </div>
+                    
+                    <div class="slot-container">
+                        <div class="slot" id="slot1">
+                            <div class="slot-title">槽位 1</div>
+                            <div class="selected-item-container"></div>
+                        </div>
+                        <div class="slot" id="slot2">
+                            <div class="slot-title">槽位 2</div>
+                            <div class="selected-item-container"></div>
+                        </div>
+                        <div class="slot" id="slot3">
+                            <div class="slot-title">槽位 3</div>
+                            <div class="selected-item-container"></div>
+                        </div>
+                        <div class="slot" id="slot4">
+                            <div class="slot-title">槽位 4</div>
+                            <div class="selected-item-container"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="selection-area">
+                    <h2>选择物品</h2>
+                    <p>点击下方物品将其添加到精炼槽位中</p>
+                    
+                    <div class="items-container" id="items-list">
+                        <!-- 物品将通过JavaScript动态加载 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="pool">
+            <h2>精炼池子 - 可产出物品汇总</h2>
+            
+            <h3>230-240武器</h3>
+            <table class="pool-table">
+                <thead>
+                    <tr>
+                        <th>武器名称</th>
+                        <th>品质</th>
+                        <th>攻击类型</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>极-海王叉</td><td>230</td><td>单发</td></tr>
+                    <tr><td>极-棒棒糖</td><td>230</td><td>单发</td></tr>
+                    <tr><td>极-圣诞派</td><td>230</td><td>单发</td></tr>
+                    <tr><td>天向上</td><td>230</td><td>单发</td></tr>
+                    <tr><td>极-打小人</td><td>230</td><td>单发</td></tr>
+                    <tr><td>极-圣水</td><td>235</td><td>单发</td></tr>
+                    <tr><td>极-热熔粒子针</td><td>235</td><td>三叉</td></tr>
+                    <tr><td>极-圣火之炬</td><td>235</td><td>三叉</td></tr>
+                    <tr><td>极-飞天帚</td><td>230</td><td>三叉</td></tr>
+                    <tr><td>极-好声音</td><td>230</td><td>三叉</td></tr>
+                    <tr><td>放逐之刃</td><td>230</td><td>单发</td></tr>
+                    <tr><td>极-复活蛋</td><td>230</td><td>单发</td></tr>
+                    <tr><td>极-魔力水枪</td><td>230</td><td>三叉</td></tr>
+                    <tr><td>极-飞天跑车</td><td>230</td><td>单发</td></tr>
+                    <tr><td>极-爱心便当</td><td>230</td><td>单发</td></tr>
+                    <tr><td>极-幸运鼓</td><td>230</td><td>单发</td></tr>
+                    <tr><td>极-神枪</td><td>230</td><td>单发</td></tr>
+                    <tr><td>极-无双</td><td>230</td><td>单发</td></tr>
+                    <tr><td>狂暴小酒桶</td><td>235</td><td>单发</td></tr>
+                    <tr><td>极-空调</td><td>235</td><td>单发</td></tr>
+                    <tr><td>极-缤纷甜筒</td><td>230</td><td>单发</td></tr>
+                    <tr><td>极-工作狂</td><td>230</td><td>单发</td></tr>
+                    <tr><td>招财进宝</td><td>240</td><td>单发</td></tr>
+                    <tr><td>荷花鲤</td><td>240</td><td>三叉</td></tr>
+                    <tr><td>夏蛙</td><td>240</td><td>单发</td></tr>
+                </tbody>
+            </table>
+            
+            <h3>242-247武器</h3>
+            <table class="pool-table">
+                <thead>
+                    <tr>
+                        <th>武器名称</th>
+                        <th>品质</th>
+                        <th>攻击类型</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>伯爵之剑</td><td>247</td><td>单发</td></tr>
+                    <tr><td>玛雅蛇杖</td><td>247</td><td>单发</td></tr>
+                    <tr><td>守护者法杖</td><td>247</td><td>单发</td></tr>
+                    <tr><td>花之恋</td><td>247</td><td>单发</td></tr>
+                    <tr><td>极-狼牙之刺</td><td>245</td><td>单发</td></tr>
+                    <tr><td>战神锤</td><td>242</td><td>单发</td></tr>
+                    <tr><td>潘多拉魔琴</td><td>242</td><td>单发</td></tr>
+                    <tr><td>邪恶之魂</td><td>242</td><td>单发</td></tr>
+                    <tr><td>桃花人偶</td><td>242</td><td>单发</td></tr>
+                    <tr><td>真-热熔粒子针</td><td>242</td><td>三叉</td></tr>
+                    <tr><td>中华神药</td><td>242</td><td>单发</td></tr>
+                    <tr><td>真-牛头怪</td><td>242</td><td>单发</td></tr>
+                    <tr><td>真-爱心回力标</td><td>242</td><td>单发</td></tr>
+                    <tr><td>真-远古竹枪</td><td>242</td><td>单发</td></tr>
+                    <tr><td>真-捣蛋鬼</td><td>242</td><td>单发</td></tr>
+                    <tr><td>真-冰雪神杖</td><td>242</td><td>单发</td></tr>
+                    <tr><td>极-雪之爱</td><td>242</td><td>单发</td></tr>
+                    <tr><td>真-逆天神炮</td><td>242</td><td>单发</td></tr>
+                    <tr><td>真-疯狂小鸡</td><td>242</td><td>单发</td></tr>
+                    <tr><td>喵喵喵</td><td>242</td><td>三叉</td></tr>
+                </tbody>
+            </table>
+            
+            <h3>200-220武器</h3>
+            <table class="pool-table">
+                <thead>
+                    <tr>
+                        <th>武器名称</th>
+                        <th>品质</th>
+                        <th>攻击类型</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>极-司马砸缸</td><td>220</td><td>单发</td></tr>
+                    <tr><td>真-司马砸缸</td><td>200</td><td>单发</td></tr>
+                    <tr><td>极-烈火</td><td>225</td><td>三叉</td></tr>
+                    <tr><td>真-烈火</td><td>205</td><td>三叉</td></tr>
+                    <tr><td>极-神风</td><td>220</td><td>单发</td></tr>
+                    <tr><td>真-神风</td><td>200</td><td>单发</td></tr>
+                    <tr><td>极-医用工具箱</td><td>220</td><td>单发</td></tr>
+                    <tr><td>真-医用工具箱</td><td>200</td><td>单发</td></tr>
+                    <tr><td>极-雷霆</td><td>220</td><td>三叉</td></tr>
+                    <tr><td>真-雷霆</td><td>200</td><td>三叉</td></tr>
+                    <tr><td>极-牛顿水果篮</td><td>220</td><td>三叉</td></tr>
+                    <tr><td>真-牛顿水果篮</td><td>200</td><td>三叉</td></tr>
+                    <tr><td>极-轰天</td><td>220</td><td>单发</td></tr>
+                    <tr><td>真-轰天</td><td>200</td><td>单发</td></tr>
+                    <tr><td>极-畅通利器</td><td>220</td><td>三叉</td></tr>
+                    <tr><td>真-畅通利器</td><td>200</td><td>三叉</td></tr>
+                    <tr><td>极-黑白家电</td><td>220</td><td>单发</td></tr>
+                    <tr><td>真-黑白家电</td><td>200</td><td>单发</td></tr>
+                </tbody>
+            </table>
+            
+            <div class="bubbles-section">
+                <h3>泡泡物品</h3>
+                <table class="pool-table">
+                    <thead>
+                        <tr>
+                            <th>泡泡名称</th>
+                            <th>精炼分值</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>伊甸园泡泡</td><td>13分</td></tr>
+                        <tr><td>喵呜泡泡</td><td>13分</td></tr>
+                        <tr><td>嗷呜泡泡</td><td>13分</td></tr>
+                        <tr><td>弹弹牌匾泡泡</td><td>13分</td></tr>
+                        <tr><td>梦幻之恋</td><td>13分</td></tr>
+                        <tr><td>纯美恋</td><td>13分</td></tr>
+                        <tr><td>肥皂泡泡</td><td>13分</td></tr>
+                        <tr><td>学生会泡泡</td><td>13分</td></tr>
+
+                    </tbody>
+                </table>
+            </div>
+            
+            <h3>杂物类精炼产物</h3>
+            <table class="pool-table">
+                <thead>
+                    <tr>
+                        <th>产品类型</th>
+                        <th>描述</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>经验珠</td><td>各种等级的经验珠</td></tr>
+                    <tr><td>项链成品</td><td>三色花、阿瑞斯、女神之泪等</td></tr>
+                    <tr><td>药水类</td><td>各种属性的1-4级药水</td></tr>
+                    <tr><td>碎片类</td><td>各种项链的初级碎片</td></tr>
+                    <tr><td>属性石</td><td>朱雀石、玄武石、青龙石、白虎石</td></tr>
+                    <tr><td>其他材料</td><td>贡献卡、声望卡、启灵珠、兽皮等</td></tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="tab-content" id="formulas">
+            <h2>实验配方记录与常用公式</h2>
+            
+            <div class="warning">
+                <strong>注意：</strong> 以下配方均为玩家实验记录，成功率仅供参考
+            </div>
+            
+            <h3>常用精炼公式</h3>
+            <div class="formulas">
+                <div class="formula recommended">
+                    <div class="formula-title">推荐公式 (60分 - 100%出货)</div>
+                    <div class="formula-content">永结同心泡泡 + 任意220-225极武器 + 经验手镯/戒指+2 + 经验手镯/戒指+2</div>
+                </div>
+                
+                <div class="formula">
+                    <div class="formula-title">公式 2 (59分 - 75%出货)</div>
+                    <div class="formula-content">经验手镯/戒指+2 + 经验手镯/戒指+2 + 经验手镯/戒指+2 + 永恒之戒+1</div>
+                </div>
+                
+                <div class="formula">
+                    <div class="formula-title">公式 3 (58分 - 75%出货)</div>
+                    <div class="formula-content">经验手镯/戒指+2 + 经验手镯/戒指+2 + 经验手镯/戒指+2 + 任意220-225极武器</div>
+                </div>
+                
+                <div class="formula">
+                    <div class="formula-title">公式 4 (60分 - 100%出货)</div>
+                    <div class="formula-content">230-240武器 + 230-240武器 + 230-240武器 + 230-240武器</div>
+                </div>
+                
+                <div class="formula">
+                    <div class="formula-title">公式 5 (80分 - 100%出货)</div>
+                    <div class="formula-content">242武器 + 242武器 + 242武器 + 242武器</div>
+                </div>
+                
+                <div class="formula">
+                    <div class="formula-title">公式 6 (20分 - 100%出货)</div>
+                    <div class="formula-content">五级合成石 + 五级合成石 + 五级合成石 + 五级合成石</div>
+                </div>
+                
+                <div class="formula">
+                    <div class="formula-title">公式 7 (20分 - 100%出货)</div>
+                    <div class="formula-content">进阶石 + 进阶石 + 进阶石 + 进阶石</div>
+                </div>
+                
+                <div class="formula">
+                    <div class="formula-title">公式 8 (20分 - 100%出货)</div>
+                    <div class="formula-content">200-205武器 + 200-205武器 + 200-205武器 + 200-205武器</div>
+                </div>
+                
+                <div class="formula">
+                    <div class="formula-title">公式 9 (40分 - 100%出货)</div>
+                    <div class="formula-content">220-225极武器 + 220-225极武器 + 220-225极武器 + 220-225极武器</div>
+                </div>
+                
+                <div class="formula">
+                    <div class="formula-title">公式 10 (24分 - 特殊概率)</div>
+                    <div class="formula-content">+2勋章首饰 + +2勋章首饰 + +2勋章首饰 + +2勋章首饰</div>
+                </div>
+                
+                <div class="formula">
+                    <div class="formula-title">公式 11 (65分 - 50%泡泡/50%首饰)</div>
+                    <div class="formula-content">242武器 + 230-240武器 + 230-240武器 + 230-240武器</div>
+                </div>
+            </div>
+            
+            <h3>特殊规律总结</h3>
+            <div class="formula">
+                <div class="formula-content">
+                    <ul>
+                        <li>喵喵喵和真热熔粒子针只能通过4个242或者4个247武器精炼得到</li>
+                        <li>总分52-59分，25%出13分泡泡</li>
+                        <li>总分61-71分，25%率出13分泡泡、经验手镯/戒指+2、经验手镯/戒指+3</li>
+                        <li>总分72-78分，25%率出13分档、18分档泡泡</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 物品数据
+        const itemsData = [
+            // 1分物品
+            { score: 1, name: "一级合成石" },
+            { score: 1, name: "一级钻头" },
+            { score: 1, name: "一级修炼药水(红药水)" },
+            { score: 1, name: "一级魔法修炼药水(蓝药水)" },
+            
+            // 2分物品
+            { score: 2, name: "一级勋章首饰" },
+            { score: 2, name: "二级合成石" },
+            { score: 2, name: "二级钻头" },
+            { score: 2, name: "大多数卡盒" },
+            { score: 2, name: "翡翠" },
+            { score: 2, name: "玛瑙" },
+            { score: 2, name: "一级培元药水(黄药水)" },
+            { score: 2, name: "一级凝神药水(紫药水)" },
+            
+            // 3分物品
+            { score: 3, name: "三级合成石" },
+            { score: 3, name: "三级钻头" },
+            { score: 3, name: "女神之泪初级碎片" },
+            { score: 3, name: "阿瑞斯初级碎片" },
+            { score: 3, name: "生日泡泡" },
+            { score: 3, name: "红包泡泡" },
+            { score: 3, name: "9周年泡泡" },
+            { score: 3, name: "气呼呼泡泡" },
+            
+            // 4分物品
+            { score: 4, name: "绿宝石项链" },
+            { score: 4, name: "水滴项链" },
+            { score: 4, name: "公会改名卡" },
+            { score: 4, name: "个人改名卡" },
+            { score: 4, name: "三级修炼药水" },
+            { score: 4, name: "四级合成石" },
+            { score: 4, name: "四级钻头" },
+            { score: 4, name: "战斗力泡泡" },
+            
+            // 5分物品
+            { score: 5, name: "200-205武器" },
+            { score: 5, name: "高级武器碎片" },
+            { score: 5, name: "高级宠物碎片" },
+            { score: 5, name: "低级宠物碎片" },
+            { score: 5, name: "宠物封印碎片" },
+            { score: 5, name: "五级钻头" },
+            { score: 5, name: "进阶石" },
+            { score: 5, name: "五级合成石" },
+            { score: 5, name: "紫晶石" },
+            { score: 5, name: "五级属性药水" },
+            
+            // 6分物品
+            { score: 6, name: "+2勋章首饰" },
+            { score: 6, name: "浪漫之戒+0" },
+            { score: 6, name: "幸福之戒+0" },
+            { score: 6, name: "维纳斯手链+0" },
+            { score: 6, name: "浪漫之戒+1" },
+            { score: 6, name: "幸福之戒+1" },
+            { score: 6, name: "维纳斯手链+1" },
+            { score: 6, name: "5周年白金首饰+0" },
+            { score: 6, name: "5周年白金首饰+1" },
+            { score: 6, name: "永恒之戒+0" },
+            
+            // 7分物品
+            { score: 7, name: "单身狗项链" },
+            { score: 7, name: "三色花项链" },
+            
+            // 8分物品
+            { score: 8, name: "+4勋章首饰" },
+            
+            // 9分物品
+            { score: 9, name: "战队改名卡" },
+            
+            // 10分物品
+            { score: 10, name: "220-225极武器" },
+            { score: 10, name: "真天使" },
+            { score: 10, name: "巴盾" },
+            { score: 10, name: "小战疫之盾" },
+            { score: 10, name: "5周年手链+2" },
+            { score: 10, name: "情定终身+2" },
+            { score: 10, name: "勋章首饰+5" },
+            { score: 10, name: "五周年戒指+3" },
+            { score: 10, name: "维纳斯+3" },
+            { score: 10, name: "浪漫之戒+3" },
+            { score: 10, name: "幸福之戒+3" },
+            
+            // 11分物品
+            { score: 11, name: "永恒之戒+1" },
+            
+            // 13分物品
+            { score: 13, name: "4周年泡泡" },
+            { score: 13, name: "5周年泡泡" },
+            { score: 13, name: "6周年泡泡" },
+            { score: 13, name: "龙舟泡泡" },
+            { score: 13, name: "元宵泡泡" },
+            { score: 13, name: "伊甸园泡泡" },
+            { score: 13, name: "牌匾泡泡" },
+            { score: 13, name: "喵呜泡泡" },
+            { score: 13, name: "嗷呜泡泡" },
+            { score: 13, name: "梦幻之恋泡泡" },
+            { score: 13, name: "纯美恋泡泡" },
+            { score: 13, name: "肥皂泡泡" },
+            { score: 13, name: "学生会泡泡" },
+            
+            // 14分物品
+            { score: 14, name: "女神之泪项链(不可续费)" },
+            { score: 14, name: "阿瑞斯项链(不可续费)" },
+            
+            // 15分物品
+            { score: 15, name: "230武器" },
+            { score: 15, name: "235武器" },
+            { score: 15, name: "240武器" },
+            { score: 15, name: "维纳斯+4" },
+            { score: 15, name: "5周年手链+3" },
+            { score: 15, name: "周年戒指+4" },
+            { score: 15, name: "情定终身+3" },
+            { score: 15, name: "法典" },
+            { score: 15, name: "足球" },
+            { score: 15, name: "极-天使" },
+            { score: 15, name: "极-恶魔之眼" },
+            
+            // 16分物品
+            { score: 16, name: "经验手镯+2" },
+            { score: 16, name: "经验戒指+2" },
+            
+            // 18分物品
+            { score: 18, name: "永结同心泡泡" },
+            { score: 18, name: "武器大师泡泡" },
+            { score: 18, name: "竞技大师泡泡" },
+            { score: 18, name: "小黄鸡泡泡" },
+            { score: 18, name: "小公主泡泡" },
+            { score: 18, name: "小王子泡泡" },
+            { score: 18, name: "火凤凰泡泡" },
+            { score: 18, name: "梦幻天使泡泡" },
+            { score: 18, name: "贵宾泡泡" },
+            { score: 18, name: "零度泡泡" },
+            
+            // 20分物品
+            { score: 20, name: "242武器" },
+            { score: 20, name: "245武器" },
+            { score: 20, name: "247武器" },
+            { score: 20, name: "249武器" },
+            { score: 20, name: "257武器" },
+            { score: 20, name: "267武器" },
+            { score: 20, name: "270武器" },
+            { score: 20, name: "285武器" },
+            { score: 20, name: "远古武器" },
+            { score: 20, name: "经验手镯+3" },
+            { score: 20, name: "维纳斯+5" },
+            { score: 20, name: "235彩妆盒" },
+            { score: 20, name: "242彩妆盒" },
+            { score: 20, name: "235幻翎" },
+            { score: 20, name: "242幻翎" }
+        ];
+
+        // 精炼池数据
+        const refinePool = {
+            "230-242": [
+                "极-海王叉(单发)", "极-棒棒糖(单发)", "极-圣诞派(单发)", "天向上(单发)",
+                "极-打小人(单发)", "极-圣水(单发)", "极-热熔粒子针(三叉)", "极-圣火之炬(三叉)",
+                "极-飞天帚(三叉)", "极-好声音(三叉)", "放逐之刃(单发)", "极-复活蛋(单发)",
+                "极-魔力水枪(三叉)", "极-飞天跑车(单发)", "极-爱心便当(单发)", "极-幸运鼓(单发)",
+                "极-神枪(单发)", "极-无双(单发)", "狂暴小酒桶(单发)", "极-空调(单发)",
+                "极-缤纷甜筒(单发)", "极-工作狂(单发)", "招财进宝(单发)", "荷花鲤(三叉)", "夏蛙(单发)",
+                 "战神锤(单发)", "潘多拉魔琴(单发)", "邪恶之魂(单发)",
+                "桃花人偶(单发)", "中华神药(单发)", "真-牛头怪(单发)",
+                "真-爱心回力标(单发)", "真-远古竹枪(单发)", "真-捣蛋鬼(单发)", "真-冰雪神杖(单发)",
+                "极-雪之爱(单发)", "真-逆天神炮(单发)", "真-疯狂小鸡(单发)"
+            ],
+            "242-247": [
+                "伯爵之剑(单发)", "玛雅蛇杖(单发)", "守护者法杖(单发)", "花之恋(单发)",
+                "极-狼牙之刺(单发)", "战神锤(单发)", "潘多拉魔琴(单发)", "邪恶之魂(单发)",
+                "桃花人偶(单发)", "真-热熔粒子针(三叉)", "中华神药(单发)", "真-牛头怪(单发)",
+                "真-爱心回力标(单发)", "真-远古竹枪(单发)", "真-捣蛋鬼(单发)", "真-冰雪神杖(单发)",
+                "极-雪之爱(单发)", "真-逆天神炮(单发)", "真-疯狂小鸡(单发)", "喵喵喵(三叉)"
+            ],
+            "220-225": [
+                "极-司马砸缸(单发)",  "极-烈火(三叉)","极-神风(单发)",  "极-医用工具箱(单发)",
+                "极-雷霆(三叉)","极-牛顿水果篮(三叉)", 
+                "极-轰天(单发)", "极-畅通利器(三叉)","极-黑白家电(单发)"
+            ],
+            "200-205": [
+                 "真-司马砸缸(单发)", "真-烈火(三叉)",
+                 "真-神风(单发)", "真-医用工具箱(单发)",
+                 "真-雷霆(三叉)", "真-牛顿水果篮(三叉)",
+                 "真-轰天(单发)",  "真-畅通利器(三叉)",
+                 "真-黑白家电(单发)"
+            ],
+            "bubbles": [
+                 "伊甸园泡泡", "喵呜泡泡", "嗷呜泡泡", "弹弹牌匾泡泡", "梦幻之恋", "纯美恋",
+                "肥皂泡泡", "学生会泡泡"
+            ],
+            "other": [
+                "经验珠", "绿宝石项链", "三色花项链", "阿瑞斯项链", "女神之泪项链", "蓝色水滴项链", "龙之眼项链",
+                "1级魔法修炼药水", "1级修练药水", "4级生命药水", "3级生命药水", "2级生命药水", "1级生命药水",
+                "4级护甲药水", "3级护甲药水", "2级护甲药水", "1级护甲药水", "4级伤害药水", "3级伤害药水",
+                "2级伤害药水", "1级伤害药水", "4级敏捷药水", "3级敏捷药水", "2级敏捷药水", "1级敏捷药水",
+                "4级攻击药水", "3级攻击药水", "2级攻击药水", "1级攻击药水", "4级防御药水", "3级防御药水",
+                "2级防御药水", "1级防御药水", "4级幸运药水", "3级幸运药水", "2级幸运药水", "1级幸运药水",
+                "三色花初级碎片", "阿瑞斯初级碎片", "女神之泪初级碎片", "蓝色水滴初级碎片", "龙之眼初级碎片",
+                "绿宝石初级碎片", "武器外壳碎片", "启灵珠碎片", "4级朱雀石", "3级朱雀石", "2级朱雀石", "1级朱雀石",
+                "4级玄武石", "3级玄武石", "2级玄武石", "1级玄武石", "4级青龙石", "3级青龙石", "2级青龙石", "1级青龙石",
+                "4级白虎石", "3级白虎石", "2级白虎石", "1级白虎石", "贡献卡", "声望卡", "启灵珠1级", "兽皮", "宠物之灵",
+                "低级祭品", "铜块", "碎石", "灵魂石", "技能升级灵珠", "坐骑丹", "灵露丹", "2级钻头", "1级钻头", "强化石",
+                "25%幸运符", "15%神恩符"
+            ]
+        };
+
+        // 精炼规则 - 根据精炼公式定义
+        const refineRules = {
+            // 20分：100%出200-205武器
+            20: {
+                type: "weapon",
+                pool: "200-205",
+                successRate: 100,
+                note: "100%出200-205武器"
+            },
+            // 24分：特殊概率分布
+            24: {
+                type: "mixed",
+                items: [
+                    { name: "幸福之戒", probability: 10},
+                    { name: "浪漫之戒", probability: 10 },
+                    { name: "维纳斯之戒", probability: 10 },
+                    { name: "永恒之戒", probability: 10 },
+                    { name: "白金之戒", probability: 10 },
+                    { name: "经验珠16", probability: 20 },
+                    { name: "经验珠64", probability: 20 },
+                    { name: "经验珠100", probability: 10 }
+                ],
+                successRate: 100,
+                note: "特殊概率分布"
+            },
+            // 40分：100%出220-225极武器
+            40: {
+                type: "weapon",
+                pool: "220-225",
+                successRate: 100,
+                note: "100%出220-225极武器"
+            },
+            // 52分：25%属性泡泡，75%经验珠
+            52: {
+                type: "mixed",
+                items: [
+                    { name: "属性泡泡", probability: 25, pool: "bubbles" },
+                    { name: "经验珠100", probability: 75 }
+                ],
+                successRate: 25,
+                note: "25%属性泡泡，75%经验珠"
+            },
+            // 58分：75%武器，20%经验珠，5%属性泡泡
+            58: {
+                type: "mixed",
+                items: [
+                    { name: "武器", probability: 75, pool: "230-240" },
+                    { name: "经验珠100", probability: 20 },
+                    { name: "属性泡泡", probability: 5, pool: "bubbles" }
+                ],
+                successRate: 75,
+                note: "75%武器，20%经验珠，5%属性泡泡"
+            },
+            // 59分：75%武器，20%经验珠，5%属性泡泡
+            59: {
+                type: "mixed",
+                items: [
+                    { name: "武器", probability: 75, pool: "230-240" },
+                    { name: "经验珠100", probability: 20 },
+                    { name: "属性泡泡", probability: 5, pool: "bubbles" }
+                ],
+                successRate: 75,
+                note: "75%武器，20%经验珠，5%属性泡泡"
+            },
+            // 60分：100%出230-242武器（不含喵喵喵和真-热熔粒子针）
+            60: {
+                type: "weapon",
+                pool: "230-242",
+                successRate: 100,
+                note: "100%出230-242武器（不含喵喵喵和真-热熔粒子针）"
+            },
+            // 65分：50%属性泡泡，50%维纳斯+4
+            65: {
+                type: "mixed",
+                items: [
+                    { name: "属性泡泡", probability: 50, pool: "bubbles" },
+                    { name: "维纳斯+4", probability: 50 }
+                ],
+                successRate: 100,
+                note: "50%属性泡泡，50%维纳斯+4"
+            },
+            // 80分：100%出242-247武器
+            80: {
+                type: "weapon",
+                pool: "242-247",
+                successRate: 100,
+                note: "100%出242-247武器"
+            }
+        };
+
+        // 当前选择的物品
+        let selectedItems = [null, null, null, null];
+        let activeSlot = 0;
+
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            // 加载物品列表
+            loadItemsList();
+            
+            // 设置槽位点击事件
+            setupSlotEvents();
+            
+            // 设置按钮事件
+            document.getElementById('calculate-btn').addEventListener('click', calculateResult);
+            document.getElementById('simulate-btn').addEventListener('click', simulateRefine);
+            document.getElementById('clear-btn').addEventListener('click', clearAllSlots);
+            
+            // 设置标签页事件
+            setupTabs();
+        });
+
+        // 设置标签页
+        function setupTabs() {
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabId = this.getAttribute('data-tab');
+                    
+                    // 移除所有活动状态
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    // 设置当前标签页为活动状态
+                    this.classList.add('active');
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+        }
+
+        // 加载物品列表
+        function loadItemsList() {
+            const itemsList = document.getElementById('items-list');
+            
+            // 按分数分组
+            const groupedItems = {};
+            itemsData.forEach(item => {
+                if (!groupedItems[item.score]) {
+                    groupedItems[item.score] = [];
+                }
+                groupedItems[item.score].push(item);
+            });
+            
+            // 创建分类
+            Object.keys(groupedItems).sort((a, b) => a - b).forEach(score => {
+                const category = document.createElement('div');
+                category.className = 'item-category';
+                
+                const title = document.createElement('div');
+                title.className = 'category-title';
+                title.textContent = `${score}分物品`;
+                category.appendChild(title);
+                
+                groupedItems[score].forEach(item => {
+                    const itemElement = document.createElement('div');
+                    itemElement.className = 'item';
+                    
+                    const nameSpan = document.createElement('span');
+                    nameSpan.textContent = item.name;
+                    
+                    const scoreSpan = document.createElement('span');
+                    scoreSpan.className = 'item-score';
+                    scoreSpan.textContent = `${item.score}分`;
+                    
+                    itemElement.appendChild(nameSpan);
+                    itemElement.appendChild(scoreSpan);
+                    
+                    itemElement.addEventListener('click', function() {
+                        selectItem(item);
+                    });
+                    
+                    category.appendChild(itemElement);
+                });
+                
+                itemsList.appendChild(category);
+            });
+        }
+
+        // 设置槽位点击事件
+        function setupSlotEvents() {
+            const slots = document.querySelectorAll('.slot');
+            slots.forEach((slot, index) => {
+                slot.addEventListener('click', function() {
+                    setActiveSlot(index);
+                });
+            });
+            
+            // 默认激活第一个槽位
+            setActiveSlot(0);
+        }
+
+        // 设置活动槽位
+        function setActiveSlot(index) {
+            // 移除所有活动状态
+            document.querySelectorAll('.slot').forEach(slot => {
+                slot.classList.remove('active');
+            });
+            
+            // 设置当前槽位为活动状态
+            document.getElementById(`slot${index+1}`).classList.add('active');
+            activeSlot = index;
+        }
+
+        // 选择物品
+        function selectItem(item) {
+            if (activeSlot === null) return;
+            
+            selectedItems[activeSlot] = item;
+            updateSlotDisplay(activeSlot, item);
+            
+            // 自动切换到下一个槽位
+            const nextSlot = (activeSlot + 1) % 4;
+            setActiveSlot(nextSlot);
+            
+            // 自动计算
+            calculateResult();
+        }
+
+        // 更新槽位显示
+        function updateSlotDisplay(slotIndex, item) {
+            const slot = document.getElementById(`slot${slotIndex+1}`);
+            const container = slot.querySelector('.selected-item-container');
+            
+            container.innerHTML = '';
+            
+            if (item) {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'selected-item';
+                
+                const nameSpan = document.createElement('span');
+                nameSpan.textContent = item.name;
+                
+                const scoreSpan = document.createElement('span');
+                scoreSpan.textContent = `${item.score}分`;
+                
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'remove-btn';
+                removeBtn.textContent = '×';
+                removeBtn.setAttribute('data-slot', slotIndex);
+                
+                // 添加移除事件
+                removeBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    removeItemFromSlot(slotIndex);
+                });
+                
+                itemElement.appendChild(nameSpan);
+                itemElement.appendChild(scoreSpan);
+                itemElement.appendChild(removeBtn);
+                
+                container.appendChild(itemElement);
+            }
+        }
+
+        // 从槽位移除物品
+        function removeItemFromSlot(slotIndex) {
+            selectedItems[slotIndex] = null;
+            updateSlotDisplay(slotIndex, null);
+            calculateResult();
+        }
+
+        // 清空所有槽位
+        function clearAllSlots() {
+            selectedItems = [null, null, null, null];
+            for (let i = 0; i < 4; i++) {
+                updateSlotDisplay(i, null);
+            }
+            setActiveSlot(0);
+            updateResultDisplay(0, "请选择物品并计算", "");
+            document.getElementById('simulation-result').style.display = 'none';
+        }
+
+        // 计算结果显示
+        function calculateResult() {
+            const totalScore = selectedItems.reduce((sum, item) => {
+                return sum + (item ? item.score : 0);
+            }, 0);
+            
+            let rateText = "未知成功率";
+            let rateClass = "";
+            let noteText = "";
+            
+            if (refineRules[totalScore]) {
+                const rule = refineRules[totalScore];
+                rateText = `${rule.successRate}% 出货几率`;
+                rateClass = `rate-${rule.successRate}`;
+                noteText = rule.note;
+            } else {
+                // 对于不在规则中的分数，只能出杂物
+                rateText = "0% 武器/泡泡几率";
+                rateClass = "rate-25";
+                noteText = "此分数只能产出杂物类物品";
+            }
+            
+            updateResultDisplay(totalScore, rateText, rateClass, noteText);
+        }
+
+        // 更新结果显示
+        function updateResultDisplay(score, rateText, rateClass, noteText = "") {
+            document.getElementById('total-score').textContent = score;
+            
+            const successRateElement = document.getElementById('success-rate');
+            successRateElement.textContent = rateText;
+            successRateElement.className = 'success-rate ' + rateClass;
+            
+            document.getElementById('result-note').textContent = noteText;
+        }
+
+        // 模拟精炼
+        function simulateRefine() {
+            const totalScore = selectedItems.reduce((sum, item) => {
+                return sum + (item ? item.score : 0);
+            }, 0);
+            
+            if (totalScore === 0) {
+                alert("请先选择物品");
+                return;
+            }
+            
+            const simulationResult = document.getElementById('simulation-result');
+            simulationResult.style.display = 'block';
+            
+            // 检查是否有对应的精炼规则
+            if (refineRules[totalScore]) {
+                const rule = refineRules[totalScore];
+                
+                if (rule.type === "weapon") {
+                    // 武器类型规则
+                    const pool = refinePool[rule.pool];
+                    const randomIndex = Math.floor(Math.random() * pool.length);
+                    const resultItem = pool[randomIndex];
+                    
+                    document.getElementById('simulation-item').textContent = resultItem;
+                    document.getElementById('simulation-item').className = 'simulation-item';
+                    document.getElementById('simulation-note').textContent = "恭喜！精炼成功！获得武器";
+                    document.getElementById('simulation-note').style.color = "green";
+                } else if (rule.type === "mixed") {
+                    // 混合类型规则
+                    const randomValue = Math.random() * 100;
+                    let cumulativeProbability = 0;
+                    let selectedItem = null;
+                    
+                    for (const item of rule.items) {
+                        cumulativeProbability += item.probability;
+                        if (randomValue <= cumulativeProbability) {
+                            selectedItem = item;
+                            break;
+                        }
+                    }
+                    
+                    if (selectedItem.pool) {
+                        // 如果项目有对应的池子，从池子中随机选择
+                        const pool = refinePool[selectedItem.pool];
+                        const randomIndex = Math.floor(Math.random() * pool.length);
+                        const resultItem = pool[randomIndex];
+                        
+                        document.getElementById('simulation-item').textContent = resultItem;
+                        
+                        if (selectedItem.pool === "bubbles") {
+                            document.getElementById('simulation-item').className = 'simulation-bubble';
+                            document.getElementById('simulation-note').textContent = "获得属性泡泡";
+                            document.getElementById('simulation-note').style.color = "#6f42c1";
+                        } else {
+                            document.getElementById('simulation-item').className = 'simulation-item';
+                            document.getElementById('simulation-note').textContent = "获得武器";
+                            document.getElementById('simulation-note').style.color = "green";
+                        }
+                    } else {
+                        // 否则直接使用项目名称
+                        document.getElementById('simulation-item').textContent = selectedItem.name;
+                        document.getElementById('simulation-item').className = 'simulation-fail';
+                        document.getElementById('simulation-note').textContent = "获得杂物";
+                        document.getElementById('simulation-note').style.color = "red";
+                    }
+                }
+            } else {
+                // 没有对应规则，只能产出杂物
+                const pool = refinePool["other"];
+                const randomIndex = Math.floor(Math.random() * pool.length);
+                const resultItem = pool[randomIndex];
+                
+                document.getElementById('simulation-item').textContent = resultItem;
+                document.getElementById('simulation-item').className = 'simulation-fail';
+                document.getElementById('simulation-note').textContent = "此分数只能产出杂物类物品";
+                document.getElementById('simulation-note').style.color = "red";
+            }
+        }
+    </script>
+</body>
+</html>
